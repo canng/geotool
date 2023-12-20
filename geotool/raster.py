@@ -6,7 +6,7 @@ from typing import AnyStr, Dict, Optional
 # =========================================================================================== #
 def merge_geotif_vrt(input_files: AnyStr, output_file: AnyStr, compress: bool=True):
     '''
-    Function to merge multiple geotif file using gdal VRT for better perfomance speed
+    Merge multiple geotif file using gdal VRT for better perfomance speed
 
     Parameters:
         input_files: List of input geotif files
@@ -23,8 +23,8 @@ def merge_geotif_vrt(input_files: AnyStr, output_file: AnyStr, compress: bool=Tr
     vrt_file = 'merged.vrt'
 
     if compress is True:
-        gdal.BuildVRT(vrt_file, input_files, options=['COMPRESS=DEFLATE'])
-        gdal.Translate(output_file, vrt_file, format='GTiff', creationOptions=['COMPRESS=DEFLATE'])
+        gdal.BuildVRT(vrt_file, input_files, options=['COMPRESS=LZW'])
+        gdal.Translate(output_file, vrt_file, format='GTiff', creationOptions=['COMPRESS=LZW'])
         os.remove(vrt_file)
     else:
         gdal.BuildVRT(vrt_file, input_files)
@@ -39,7 +39,7 @@ def merge_geotif_vrt(input_files: AnyStr, output_file: AnyStr, compress: bool=Tr
 # =========================================================================================== #
 def merge_geotif_rio(input_files: AnyStr, output_file: AnyStr, compress: bool=True):
     '''
-    Function to merge multiple geotif file using Rasterio 
+    Merge multiple geotif file using Rasterio 
 
     Parameters:
         input_files: List of input geotif files
@@ -87,7 +87,7 @@ def merge_geotif_rio(input_files: AnyStr, output_file: AnyStr, compress: bool=Tr
 # =========================================================================================== #
 def writeRaster_rio(input_Arr: AnyStr, output_name: AnyStr, profile: Dict[str, AnyStr], compress: bool = False, compress_opt: Optional[AnyStr] = None):
     '''
-    Function to write raster Geotif from data Array using Rasterio.
+    Write raster Geotif from data Array using Rasterio.
 
     Parameters:
         input_Arr: Data array.
@@ -124,5 +124,32 @@ def writeRaster_rio(input_Arr: AnyStr, output_name: AnyStr, profile: Dict[str, A
 
     print(f"Finished writing raster files, the output is at {output_name}")
 
+# =========================================================================================== #
+#               mask raster
+# =========================================================================================== #
+def maskRaster(img: AnyStr, roi: AnyStr):
+    '''
+    Crop and mask raster opened by rasterio by shapefile vector.
+
+    Parameters:
+        img: image raster file opened by rasterio
+        roi: region of interest opened by geopandas 
+    Example:
+       img = rasterio.open('./landsat_multi/landsat_img_test.tif', 'r')
+       roi = gpd.read_file('./roi/roi.shp')
+
+       masked = raster.maskRaster(img, roi)
+
+       import earthpy.plot as ep
+       ep.plot_rgb(masked, stretch=True, rgb=(3,2,1))
+    '''
+    import rasterio
+    from rasterio import mask
+    from shapely.geometry import mapping
+
+    masked_img, geotranform = mask.mask(dataset=img, 
+                                                                            shapes=roi.geometry.apply(mapping), crop=True)
+    
+    return masked_img
 
 
