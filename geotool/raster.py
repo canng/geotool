@@ -72,7 +72,7 @@ def merge_geotif_rio(input_files: AnyStr, output_file: AnyStr, compress: bool=Tr
                                     "transform": out_trans})
     
     if compress is True:
-        out_meta.update({'compress': 'deflate'})
+        out_meta.update({'compress': 'LWZ'})
     else:
         pass
     
@@ -125,7 +125,7 @@ def writeRaster_rio(input_Arr: AnyStr, output_name: AnyStr, profile: Dict[str, A
     print(f"Finished writing raster files, the output is at {output_name}")
 
 # =========================================================================================== #
-#               mask raster
+#              Crop and Mask raster using shapefile
 # =========================================================================================== #
 def maskRaster(img: AnyStr, roi: AnyStr):
     '''

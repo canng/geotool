@@ -19,7 +19,7 @@ def listFiles(path: AnyStr, pattern: AnyStr):
         pattern: search pattern (e.g., tif)
         
     Example:
-        files = listFiles('./paren/folder/', 'tif)
+        files = listFiles('./parent/folder/', 'tif)
     '''
     import glob
     
