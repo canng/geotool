@@ -1,6 +1,7 @@
 README.md
 setup.py
 geotool/__init__.py
+geotool/classification.py
 geotool/raster.py
 geotool/tools.py
 geotool.egg-info/PKG-INFO

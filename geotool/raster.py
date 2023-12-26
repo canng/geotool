@@ -230,7 +230,7 @@ def writeRaster_rio(input_Arr: AnyStr, output_name: AnyStr, profile: Dict[str, A
 # =========================================================================================== #
 #              Crop and Mask raster using shapefile
 # =========================================================================================== #
-def cropRaster(img: AnyStr, roi: AnyStr, maskout: bool= False):
+def maskByShape(img: AnyStr, roi: AnyStr, maskout: bool= False):
     '''
     Crop and mask raster opened by rasterio by shapefile vector.
 
@@ -241,7 +241,7 @@ def cropRaster(img: AnyStr, roi: AnyStr, maskout: bool= False):
        img = rasterio.open('./landsat_multi/landsat_img_test.tif', 'r')
        roi = gpd.read_file('./roi/roi.shp')
 
-       masked = raster.maskRaster(img, roi)
+       masked = raster.maskByShape(img, roi)
 
        import earthpy.plot as ep
        ep.plot_rgb(masked, stretch=True, rgb=(3,2,1))
