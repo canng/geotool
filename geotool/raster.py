@@ -1,17 +1,34 @@
 # Python 3.11.6
 from typing import AnyStr, Dict, Optional
 
+##############################################################################################
+'''
+RASTER FUNCTIONS
+
+1. openRaster
+2. openVect
+3. merge_geotif_vrt
+4. merge_geotif_rio
+5. stackLayer
+6. writeRaster_rio
+7. mask_by_shape
+8. reproject
+
+'''
 # =========================================================================================== #
 #               Open raster geotif file
 # =========================================================================================== #
 def openRaster(input_path: AnyStr):
     '''
-    ---
+    Open a single geotif raster file using Rasterio
 
     Parameters:
+        inputpath: the file path indicates location of geotif file
 
     Example:
-       
+       path = '../test/landsat_multi/landsat_img_test.tif'
+       img = openRaster(path)
+    
     '''
     import rasterio
     import os
@@ -20,21 +37,24 @@ def openRaster(input_path: AnyStr):
     basename = os.path.basename(input_path)
     meta = img.meta
 
-    print(f"Open {basename} \n{meta}")
+    print(f"Open: {basename} \n{meta}")
 
-    return img
+    return img, meta
     
 # =========================================================================================== #
 #               Open shapefile
 # =========================================================================================== #
 def openVect(input_path: AnyStr):
     '''
-    ---
+    Read shapefile vector file using Geopandas 
 
     Parameters:
+        input_path: the file path indicates location of shapefile 
 
     Example:
-       
+        path ='../test/roi/roi.shp
+        poly = openVect(path)
+
     '''
     import geopandas as gpd
     import os
@@ -54,7 +74,7 @@ def openVect(input_path: AnyStr):
 # =========================================================================================== #
 def merge_geotif_vrt(input_files: AnyStr, output_file: AnyStr, compress: bool=True):
     '''
-    Merge multiple geotif file using gdal VRT for better perfomance speed
+    Merge multiple geotif files using gdal VRT for better perfomance speed
 
     Parameters:
         input_files: List of input geotif files
@@ -63,6 +83,7 @@ def merge_geotif_vrt(input_files: AnyStr, output_file: AnyStr, compress: bool=Tr
     Example:
        input_list = tools.listFiles('./test/', 'tif)
        raster.merge_geotif_vrt(input_list, './test/output.tif')
+
     '''
 
     import os
@@ -96,6 +117,7 @@ def merge_geotif_rio(input_files: AnyStr, output_file: AnyStr, compress: bool=Tr
     Example:
        input_list = tools.listFiles('./test/', 'tif)
        raster.merge_geotif_vrt(input_list, './test/output.tif')
+
     '''
     import rasterio
     from rasterio import merge 
@@ -144,6 +166,7 @@ def stackLayer(input_files: AnyStr, output_file: AnyStr, compress: bool=True):
     Example:
        input_list = tools.listFiles('./test/', 'tif)
        raster.merge_geotif_vrt(input_list, './test/output.tif')
+
     '''
     import numpy as np
     import rasterio
@@ -200,7 +223,10 @@ def writeRaster_rio(input_Arr: AnyStr, output_name: AnyStr, profile: Dict[str, A
         compress_opt: Compression algorithm (optional).
 
     Example:
-       ...
+        meta = img.meta
+        meta.update({'count': 1})
+        meta.update({'dtype': rasterio.float32})
+        writeRatser_rio(arr, 'output.tif', profile=meta, compress=True, compress_opt='LZW')
     '''
     import rasterio
 
@@ -230,21 +256,21 @@ def writeRaster_rio(input_Arr: AnyStr, output_name: AnyStr, profile: Dict[str, A
 # =========================================================================================== #
 #              Crop and Mask raster using shapefile
 # =========================================================================================== #
-def maskByShape(img: AnyStr, roi: AnyStr, maskout: bool= False):
+def mask_by_shape(img: AnyStr, roi: AnyStr, maskout: bool= False):
     '''
-    Crop and mask raster opened by rasterio by shapefile vector.
+    Crop and mask raster opened by rasterio by shapefile vector
 
     Parameters:
         img: image raster file opened by rasterio
         roi: region of interest opened by geopandas 
+
     Example:
-       img = rasterio.open('./landsat_multi/landsat_img_test.tif', 'r')
-       roi = gpd.read_file('./roi/roi.shp')
+        img = rasterio.open('./landsat_multi/landsat_img_test.tif', 'r')
+        roi = gpd.read_file('./roi/roi.shp')
+        masked = raster.maskByShape(img, roi)
+        import earthpy.plot as ep
+        ep.plot_rgb(masked, stretch=True, rgb=(3,2,1))
 
-       masked = raster.maskByShape(img, roi)
-
-       import earthpy.plot as ep
-       ep.plot_rgb(masked, stretch=True, rgb=(3,2,1))
     '''
     from rasterio import mask
     from shapely.geometry import mapping
@@ -262,4 +288,51 @@ def maskByShape(img: AnyStr, roi: AnyStr, maskout: bool= False):
     
     return masked_img
 
+# =========================================================================================== #
+#              Crop and Mask raster using shapefile
+# =========================================================================================== #
 
+def reproject(input_path, crs: AnyStr, res: Optional[AnyStr]=None, method:Optional[AnyStr]='near', output: Optional[AnyStr]=None):
+    '''
+    Reproject raster data to a new projection and resample (if possible) using rioxarray
+
+    Parameters:
+        input_path: The file path indice geotif file that would be open rioxarray 
+        crs: Projection coordinate reference system ('EPSG:32648')
+        res: Resolution of the output in degree or meters depends on the output crs
+        method: Resampling method, current method are: nearest, cubic, bilinear, average
+        output: Output name, if the output name does not given, the output will be temporally stored inside working variable
+    
+    Example:
+       
+    '''
+    import rioxarray
+    import rasterio 
+
+    src = rioxarray.open_rasterio(input_path)
+    
+    if res is None:
+       dst = src.rio.reproject(crs)
+    else:
+        method = method.upper()
+        if method == 'NEAREST':
+            dst = src.rio.reproject(crs, resolution=res, method=rasterio.enums.Resampling.nearest)
+        if method == 'CUBIC':
+            dst = src.rio.reproject(crs, resolution=res, methodg=rasterio.enums.Resampling.cubic)
+        if method == 'BILINEAR':
+            dst = src.rio.reproject(crs, resolution=res, method=rasterio.enums.Resampling.bilinear)
+        if method == 'AVERAGE':
+            dst = src.rio.reproject(crs, resolution=res, method=rasterio.enums.Resampling.average)
+
+    if output is None:
+        pass
+    else:
+        dst.rio.to_raster(output)
+    
+    return dst
+
+        
+    
+
+        
+    

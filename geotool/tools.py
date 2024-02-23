@@ -7,12 +7,22 @@ import os
 os.environ['GDAL_DATA'] = os.environ['CONDA_PREFIX'] + r'\Library\share\gdal'
 os.environ['PROJ_LIB'] = os.environ['CONDA_PREFIX'] + r'\Library\share'
 
+
+##############################################################################################
+'''
+TOOL FUNCTIONS
+
+1. listFiles
+2. getExtent
+
+
+'''
 # =========================================================================================== #
 #               Find all files in folder with specific pattern
 # =========================================================================================== #
 def listFiles(path: AnyStr, pattern: AnyStr):
     '''
-    Function to list all files with specific pattern within a folder path
+    List all files with specific pattern within a folder path
 
     Parameters:
         path: folder path
@@ -29,17 +39,18 @@ def listFiles(path: AnyStr, pattern: AnyStr):
     return(input_files)
 
 # =========================================================================================== #
-#               Get common extent 
+#               Get common extent for all images
 # =========================================================================================== #
 def getExtent(inputList: AnyStr):
     '''
-    Function to ...
+    Get general spatial exent outside all images for a list of geotif images
 
     Parameters:
-        
+        inputList: list of all geotif images
         
     Example:
-        
+        listfiles = listFiles('./parent/folder/', 'tif)
+        ext = getExtent(listfiles)
     '''
     import rasterio
 
@@ -63,6 +74,38 @@ def getExtent(inputList: AnyStr):
                 )
     # Create a GeoDataFrame with the general extent
     return general_extent
+
+# =========================================================================================== #
+#               Create rectangle around all images based on spatial extention
+# =========================================================================================== #
+def Extent(ext, crs: AnyStr):
+    '''
+    Create spatial extension for geotif image
+
+    Parameters:
+        ext: Extention get from spatial data
+        crs: String of Coordinate Reference System (CRS), e.g., 'EPSG:4326'
+        
+    Example:
+        listfiles = listFiles('./parent/folder/', 'tif)
+        ext = getExtent(listfiles)
+        poly = Extent(ext, crs='EPSG:32648')
+    '''
+    import geopandas as gpd
+    from shapely.geometry import Polygon
+
+    poly_geom = Polygon([
+        (ext[0], ext[1]), 
+        (ext[0], ext[3]), 
+        (ext[2], ext[3]), 
+        (ext[3], ext[1]), 
+    ])
+    poly = gpd.GeoDataFrame(index=[0], geometry=[poly_geom])
+    poly.crs = {'init': crs}
+
+    return poly
+
+    
 
 
 
