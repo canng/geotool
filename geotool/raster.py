@@ -286,7 +286,7 @@ def mask_by_shape(img: AnyStr, roi: AnyStr, maskout: bool= False):
     
     masked_img, geotranform = mask.mask(dataset=img, shapes=polys.geometry.apply(mapping), crop=True)
     
-    return masked_img
+    return masked_img, geotranform
 
 # =========================================================================================== #
 #              Crop and Mask raster using shapefile

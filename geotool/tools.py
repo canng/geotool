@@ -96,9 +96,9 @@ def Extent(ext, crs: AnyStr):
 
     poly_geom = Polygon([
         (ext[0], ext[1]), 
-        (ext[0], ext[3]), 
+        (ext[2], ext[1]), 
         (ext[2], ext[3]), 
-        (ext[3], ext[1]), 
+        (ext[0], ext[3]), 
     ])
     poly = gpd.GeoDataFrame(index=[0], geometry=[poly_geom])
     poly.crs = {'init': crs}
